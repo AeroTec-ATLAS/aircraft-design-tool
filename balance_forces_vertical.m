@@ -14,19 +14,17 @@
 % You should have received a copy of the GNU General Public License
 % along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-function max_p = network_max_power(network)
-max_p = 0;
-for i = 1 : length(network)
-    if (is_type(network{i}, 'engine'))
-        p = engine_max_power(network{i});
-        if p > max_p
-            max_p = p;
-        end
-    end
+function rotor = balance_forces_vertical(rotor, vehicle_mass)
+global constants
+denominator = 0;
+for i = 1 : length(rotor) 
+    denominator = denominator + rotor{i}.number * rotor_area(rotor{i}) / rotor_area(rotor{1});
 end
 
-function p = engine_max_power(engine)
-p = engine.max_power;
-if isfield(engine, 'number')
-    p = p * engine.number;
+for i = 1 : length(rotor)
+    if i == 1
+        rotor{i}.thrust = vehicle_mass * constants.g / denominator;
+    else
+        rotor{i}.thrust = rotor_area(rotor{i})/rotor_area(rotor{1}) * rotor{1}.thrust;
+    end
 end

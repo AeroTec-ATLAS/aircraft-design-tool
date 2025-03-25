@@ -33,7 +33,7 @@ for i = 1 : length(mission.segments)
         mission.segments{i}.range = 0;
     elseif strcmp(mission.segments{i}.type, 'transition') % Transition segment
         mission.segments{i}.range = mean(mission.segments{i}.velocity) * mission.segments{i}.time;
-    elseif strcmp(mission.segments{i}.type, 'climb') % Climb segment
+    elseif strcmp(mission.segments{i}.type, 'climb') % Climb segment for both fixed-wing aircraft and rotorcraft
         mission.segments{i}.time = (mission.segments{i}.altitude(2) - mission.segments{i}.altitude(1)) / mission.segments{i}.velocity / sind(mission.segments{i}.angle);
         mission.segments{i}.range = mission.segments{i}.velocity * mission.segments{i}.time * cosd(mission.segments{i}.angle);
     elseif strcmp(mission.segments{i}.type, 'vertical_climb') % Vertical climb segment
@@ -43,11 +43,17 @@ for i = 1 : length(mission.segments)
         mission.segments{i}.range = mission.segments{i}.velocity * mission.segments{i}.time;
     elseif strcmp(mission.segments{i}.type, 'cruise') % Cruise segment
         mission.segments{i}.time = mission.segments{i}.range / mission.segments{i}.velocity;
+    elseif strcmp(mission.segments{i}.type, 'recharge_cruise') % Cruise segment
+        mission.segments{i}.time = mission.segments{i}.range / mission.segments{i}.velocity;
+    elseif strcmp(mission.segments{i}.type, 'electric_recharge_cruise') % Cruise segment
+        mission.segments{i}.time = mission.segments{i}.range / mission.segments{i}.velocity;
+    elseif strcmp(mission.segments{i}.type, 'hybrid_cruise') % Cruise segment
+        mission.segments{i}.time = mission.segments{i}.range / mission.segments{i}.velocity;
     elseif strcmp(mission.segments{i}.type, 'hold') % Hold segment
         mission.segments{i}.range = mission.segments{i}.velocity * mission.segments{i}.time;
     % elseif strcmp(mission.segments{i}.type, 'combat') % Combat segment
         % TODO
-    elseif strcmp(mission.segments{i}.type, 'descent') % Descent segment
+    elseif strcmp(mission.segments{i}.type, 'descent') % Descent segment for both fixed-wing aircraft and rotorcraft
         mission.segments{i}.time = abs(mission.segments{i}.altitude(2) - mission.segments{i}.altitude(1)) / abs(mission.segments{i}.velocity) / abs(sind(mission.segments{i}.angle));
         mission.segments{i}.range = abs(mission.segments{i}.velocity) * mission.segments{i}.time * abs(cosd(mission.segments{i}.angle));
     elseif strcmp(mission.segments{i}.type, 'vertical_descent') % Vertical descent segment

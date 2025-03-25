@@ -51,6 +51,18 @@ for i = 1 : length(mission.segments)
         plot([x, x + mission.segments{i}.range], [mission.segments{i}.altitude, mission.segments{i}.altitude], 'DisplayName', ['Cruise (', num2str(i-1), '-', num2str(i), ')']);
         text(x + mission.segments{i}.range, mission.segments{i}.altitude, num2str(i));
         x = x + mission.segments{i}.range;
+    elseif strcmp(mission.segments{i}.type, 'recharge_cruise') % Recharge Cruise segment
+        plot([x, x + mission.segments{i}.range], [mission.segments{i}.altitude, mission.segments{i}.altitude], 'DisplayName', ['Recharge Cruise (', num2str(i-1), '-', num2str(i), ')']);
+        text(x + mission.segments{i}.range, mission.segments{i}.altitude, num2str(i));
+        x = x + mission.segments{i}.range;
+    elseif strcmp(mission.segments{i}.type, 'hybrid_cruise') % Hybrid Cruise segment
+        plot([x, x + mission.segments{i}.range], [mission.segments{i}.altitude, mission.segments{i}.altitude], 'DisplayName', ['Hybrid Cruise (', num2str(i-1), '-', num2str(i), ')']);
+        text(x + mission.segments{i}.range, mission.segments{i}.altitude, num2str(i));
+        x = x + mission.segments{i}.range;
+    elseif strcmp(mission.segments{i}.type, 'electric_recharge_cruise') % Electric recharge Cruise segment
+        plot([x, x + mission.segments{i}.range], [mission.segments{i}.altitude, mission.segments{i}.altitude], 'DisplayName', ['Electric Recharge Cruise (', num2str(i-1), '-', num2str(i), ')']);
+        text(x + mission.segments{i}.range, mission.segments{i}.altitude, num2str(i));
+        x = x + mission.segments{i}.range;
     elseif strcmp(mission.segments{i}.type, 'hold') % Hold segment
         plot([x, x + mission.segments{i}.range], [mission.segments{i}.altitude, mission.segments{i}.altitude], 'DisplayName', ['Hold (', num2str(i-1), '-', num2str(i), ')']);
         text(x + mission.segments{i}.range, mission.segments{i}.altitude, num2str(i));

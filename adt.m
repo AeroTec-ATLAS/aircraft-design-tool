@@ -25,6 +25,11 @@ fprintf('<strong>see details in the included LICENSE file.</strong>\n\n');
 global constants;
 constants.g = 9.81; % m/s^2
 
+%% Databases
+global databases;
+databases.source = read_file('energy_source_data.txt','source');
+databases.gwp = read_file('gwp_data.txt','gwp');
+
 %% Load project file
 data = load_project(filename);
 
@@ -34,7 +39,7 @@ print_concepts(data.concept)
 
 % Add missing mission segment and vehicle component parameters
 data.mission = build_mission(data.mission);
-data.vehicle = build_vehicle(data.mission, data.vehicle);
+data.vehicle = build_vehicle(data.vehicle);
 
 %% Plot mission profile
 plot_mission(data.mission);
@@ -43,6 +48,10 @@ plot_mission(data.mission);
 data.vehicle = aero_analysis(data.mission, data.vehicle);
 [data.mission, data.vehicle] = mass_analysis(data.mission, data.vehicle, data.energy);
 data.vehicle = design_space_analysis(data.mission, data.vehicle, data.energy);
+[data.vehicle,data.mission] = emissions(data.mission, data.vehicle);
+
+%% Plot aircraft configuration
+data.vehicle = plot_aircraft(data.vehicle);
 
 %% Save new project file
 if ~isempty(varargin)

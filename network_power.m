@@ -14,30 +14,12 @@
 % You should have received a copy of the GNU General Public License
 % along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-function test = is_type(data, type)
-type_tags = split(type, '.');
-if iscell(data)
-    for j = 1 : length(data)
-        elem_tags = split(data{j}.type, '.');
-
-        for i = 1 : length(type_tags)
-            if ~strcmp(elem_tags{i}, type_tags{i})
-                test = false;
-                return;
-            end
+function p = network_power(network, type)
+p = 0;
+for i = 1 : length(network)
+    for j = 1 : length(network{i})
+        if (is_type(network{i}(j), type))
+            p = p + network{i}(j).number * network{i}(j).max_power;
         end
     end
-
-    test = true;
-else
-    elem_tags = split(data.type, '.');
-
-    for i = 1 : length(type_tags)
-        if ~strcmp(elem_tags{i}, type_tags{i})
-            test = false;
-            return;
-        end
-    end
-    
-    test = true;
 end

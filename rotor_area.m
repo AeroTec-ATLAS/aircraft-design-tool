@@ -16,6 +16,4 @@
 
 function a = rotor_area(rotor)
 a = pi() * rotor.radius^2;
-if isfield(rotor, 'number')
-    a = a * rotor.number;
-end
+

@@ -18,16 +18,18 @@ function [elems, ids] = find_network_components(vehicle, network)
 elems = {};
 ids = [];
 for i = 1 : length(network.layout)
-    for j = 1 : length(vehicle.components)
-        if strcmp(network.layout{i}.name, vehicle.components{j}.name)
-            e = vehicle.components{j};
-            fields = fieldnames(network.layout{i});
-            for k = 1 : length(fields)
-                e.(fields{k}) = network.layout{i}.(fields{k});
+    for k = 1 : length(network.layout{i})
+        for j = 1 : length(vehicle.components)
+            if strcmp(network.layout{i}(k).name, vehicle.components{j}.name)
+                e = vehicle.components{j};
+                fields = fieldnames(network.layout{i}(k));
+                for m = 1 : length(fields)
+                    e.(fields{m}) = network.layout{i}(k).(fields{m});
+                end
+                elems{i,k} = e;
+                ids(i,k) = j;
+                break;
             end
-            elems = [elems e];
-            ids = [ids j];
-            break;
         end
     end
 end
