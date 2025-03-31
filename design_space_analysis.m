@@ -17,8 +17,8 @@
 function vehicle = design_space_analysis(mission, vehicle, energy)
 global constants;
 
-wl = 0:5:2000;
-dl = 0:5:10000;
+wl = 0:0.25:500;
+dl = 0:0.25:500;
 pl = 0:0.0005:0.5;
 [plf_grid, wl_grid] = meshgrid(pl, wl);
 [plv_grid, dl_grid] = meshgrid(pl, dl);
@@ -39,13 +39,13 @@ a.Title.String = 'Design Point';
 a.XLim = [0 pl(end)];
 a.XLabel.String = 'W/P';
 a.YLim = [0 dl(end)];
-a.YLabel.String = 'W/A';
+a.YLabel.String = 'W/S';
 a.LineStyleOrder = '-';
 colororder(colors)
 if is_type(find_by_type(vehicle.components, 'aircraft'),'aircraft.vtol_fixed_wing')
     yyaxis right;
     a.YLim = [0 wl(end)];
-    a.YLabel.String = 'W/S';
+    a.YLabel.String = 'W/A';
     a.LineStyleOrder = '-';
     colororder(colors)
 end
@@ -82,7 +82,16 @@ vertical_region = cv;
 
 for i = 1 : length(mission.segments)
     if strcmp(mission.segments{i}.type, 'climb') % Climb segment
-        [constraint_ice, constraint_em, vertical_constraint, forward_region_ice, forward_region_em, vertical_region, power_ice, power_em] = climb(plf_grid, plv_grid, wl_grid, dl_grid, wl, dl, k, mission.segments{i}, vehicle, energy);      
+
+        try   %codigo alex (isto pode ser comentado no fim)
+            [constraint_ice, constraint_em, vertical_constraint, forward_region_ice, forward_region_em, vertical_region, power_ice, power_em] = climb(plf_grid, plv_grid, wl_grid, dl_grid, wl, dl, k, mission.segments{i}, vehicle, energy);      
+        catch ME   %codigo alex (isto pode ser comentado no fim)
+            disp('An error occurred:');   %codigo alex (isto pode ser comentado no fim)
+            disp(ME.message);   %codigo alex (isto pode ser comentado no fim)
+            disp('Error occurred in:');   %codigo alex (isto pode ser comentado no fim)
+            disp(ME.stack(1));  %codigo alex (isto pode ser comentado no fim)
+        end
+
         yyaxis left;
         if is_type(find_by_type(vehicle.components, 'aircraft'), 'aircraft.rotary_wing')
             plot(vertical_constraint, dl, 'DisplayName', strcat(mission.segments{i}.name, ": climb constraint - electric motors"));
@@ -352,15 +361,14 @@ region = hover_region(plv_grid, dl_grid, segment.density, segment.weight_init, v
 
 power = network_power(network, 'motor.prop');
 
-% function [constraint, region, power] = transition(plv_grid, dl_grid, wl, dl, k, segment, next_segment, vehicle, energy)
-% network = find_network_components(vehicle, find_by_name(energy.networks, segment.energy_network));
-% [segment_props, ~] = find_by_name(vehicle.segments, segment.name);
-% rotor = find_by_type(network, 'driver.prop');
-% 
-% constraint = transition_constraint(wl, dl, segment.density, k, segment_props.base_drag_coefficient, rotor.tip_velocity, rotor.rotor_solidity, rotor.base_drag_coefficient, rotor.induced_power_factor, next_segment.velocity, segment.transition_angle);
-% region = transition_region(plv_grid, wl, dl_grid, segment.density, k, segment_props.base_drag_coefficient, rotor.tip_velocity, rotor.rotor_solidity, rotor.base_drag_coefficient, rotor.induced_power_factor, next_segment.velocity, segment.transition_angle);
-% 
-% power = network_power(network, 'motor.prop');
+function [constraint, region, power] = transition(plv_grid, dl_grid, wl, dl, k, segment, next_segment, vehicle, energy)
+network = find_network_components(vehicle, find_by_name(energy.networks, segment.energy_network));
+[segment_props, ~] = find_by_name(vehicle.segments, segment.name);
+rotor = find_by_type(network, 'driver.prop');
+ 
+constraint = transition_constraint(wl, dl, segment.density, k, segment_props.base_drag_coefficient, rotor{1}.tip_velocity, rotor{1}.rotor_solidity, rotor{1}.base_drag_coefficient, rotor{1}.induced_power_factor, next_segment.velocity, segment.transition_angle);
+region = transition_region(plv_grid, wl, dl_grid, segment.density, k, segment_props.base_drag_coefficient, rotor{1}.tip_velocity, rotor{1}.rotor_solidity, rotor{1}.base_drag_coefficient, rotor{1}.induced_power_factor, next_segment.velocity, segment.transition_angle); 
+power = network_power(network, 'motor.prop');
 
 function [constraint, region, power] = vertical_climb(plv_grid, dl_grid, dl, segment, vehicle, energy)
 network = find_network_components(vehicle, find_by_name(energy.networks, segment.energy_network));
@@ -380,6 +388,10 @@ motor = find_by_type(network, 'motor');
 rotor = find_by_type(network, 'driver.prop');
 aircraft = find_by_type(vehicle.components, 'aircraft');
 [segment_props, ~] = find_by_name(vehicle.segments, segment.name);
+
+
+vertical_constraint = [];   %codigo alex
+vertical_region = ones(2001, 1001);   %codigo alex
 
 if is_type(source{1,1}, 'energy.fuel')
     if isempty(motor)
@@ -430,6 +442,9 @@ rotor = find_by_type(network, 'driver.prop');
 aircraft = find_by_type(vehicle.components, 'aircraft');
 [segment_props, ~] = find_by_name(vehicle.segments, segment.name);
 main_wing = find_by_type(vehicle.components, 'wing.main');
+
+vertical_constraint = [];   %codigo alex outra vez
+vertical_region = ones(2001, 1001);   %codigo alex outra vez ass. batalha+bea
 
 if ~is_type(aircraft, 'aircraft.rotary_wing')
     stall_constraint = stall_speed_constraint(segment.density, segment.velocity_stall, segment.weight_init, vehicle.mass, main_wing{1,1}.airfoil.cl_max);
@@ -489,7 +504,7 @@ elseif is_type(source{1,1}, 'energy.electric')
         cruise_speed_constraint_ice = [];
 
         region_em = [];
-    else
+    else        
         range_constraint = range_constraint_prop(segment.density, segment.velocity, segment.weight_init, vehicle.mass, segment_props.base_drag_coefficient, k);
         range_region = range_region_prop(wl_grid, segment.density, segment.velocity, segment.weight_init, vehicle.mass, segment_props.base_drag_coefficient, k);
 
@@ -773,10 +788,10 @@ if strcmp(ducted, 'Yes')
     pl = pl .* sqrt(2);
 end
 
-% function pl = transition_constraint(wl, dl, rho, k, cd_0, v_tip, ss, cd, k_i, v, tt_tilt)
-% aa = 0; % Assuming zero angle of attack of the blades
-% mm = v * cosd(aa) / v_tip;
-% pl = 1 ./ (k_i ./ sind(tt_tilt) .* sqrt(-v.^2 ./ 2 + sqrt((v.^2 ./ 2).^2 + (dl ./ 2 ./ rho ./ sind(tt_tilt)).^2)) + rho .* v_tip.^3 ./ dl .* (ss .* cd ./ 8 .* (1 + 4.6 .* mm.^2)) + 0.5 .* rho .* v^3 .* cd_0 ./ wl + 2 .* wl .* k ./ rho ./ v);
+function pl = transition_constraint(wl, dl, rho, k, cd_0, v_tip, ss, cd, k_i, v, tt_tilt)
+aa = 0; % Assuming zero angle of attack of the blades
+mm = v * cosd(aa) / v_tip;
+pl = 1 ./ (k_i ./ sind(tt_tilt) .* sqrt(-v.^2 ./ 2 + sqrt((v.^2 ./ 2).^2 + (dl ./ 2 ./ rho ./ sind(tt_tilt)).^2)) + rho .* v_tip.^3 ./ dl .* (ss .* cd ./ 8 .* (1 + 4.6 .* mm.^2)) + 0.5 .* rho .* v^3 .* cd_0 ./ wl + 2 .* wl .* k ./ rho ./ v);
 
 %% Vertical flight constraint regions
 function c = hover_region(pl, dl, rho, m_i, mtom, v_tip, ss, cd, k_i, r, coaxial, ducted)
@@ -826,10 +841,10 @@ if strcmp(ducted, 'Yes')
     c = sqrt(2) .* c;
 end
 
-% function c = transition_region(pl, wl, dl, rho, k, cd_0, v_tip, ss, cd, k_i, v, tt_tilt)
-% aa = 0; % Assuming zero angle of attack of the blades
-% mm = v * cosd(aa) / v_tip;
-% c = pl < 1 ./ (k_i ./ sind(tt_tilt) .* sqrt(-v.^2 ./ 2 + sqrt((v.^2 ./ 2).^2 + (dl ./ 2 ./ rho ./ sind(tt_tilt)).^2)) + rho .* v_tip.^3 ./ dl .* (ss .* cd ./ 8 .* (1 + 4.6 .* mm.^2)) + 0.5 .* rho .* v^3 .* cd_0 ./ wl + 2 .* wl .* k ./ rho ./ v);
+function c = transition_region(pl, wl, dl, rho, k, cd_0, v_tip, ss, cd, k_i, v, tt_tilt)
+aa = 0; % Assuming zero angle of attack of the blades
+mm = v * cosd(aa) / v_tip;
+c = pl < 1 ./ (k_i ./ sind(tt_tilt) .* sqrt(-v.^2 ./ 2 + sqrt((v.^2 ./ 2).^2 + (dl ./ 2 ./ rho ./ sind(tt_tilt)).^2)) + rho .* v_tip.^3 ./ dl .* (ss .* cd ./ 8 .* (1 + 4.6 .* mm.^2)) + 0.5 .* rho .* v^3 .* cd_0 ./ wl + 2 .* wl .* k ./ rho ./ v);
 
 % Forward flight constraint functions
 function wl = range_constraint_jet(rho, v, m_i, mtom, cd_0, k)

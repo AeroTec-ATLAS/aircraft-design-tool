@@ -12,14 +12,22 @@
 % GNU General Public License for more details.
 %
 % You should have received a copy of the GNU General Public License
-% along with this program.  If not, see <https://www.gnu.org/licenses/>.
+% along with this progra    m.  If not, see <https://www.gnu.org/licenses/>.
 
-function data = adt(filename, varargin)
-clc
+function data = adt()
+clc;
+clear;
+close all;
+
+
+
 fprintf('<strong>Aircraft Design Tool  Copyright (C) 2022  Mario Bras</strong>\n');
 fprintf('<strong>This program comes with ABSOLUTELY NO WARRANTY.</strong>\n');
 fprintf('<strong>This is free software, and you are welcome to redistribute it under certain conditions;</strong>\n');
 fprintf('<strong>see details in the included LICENSE file.</strong>\n\n');
+
+%fui e  u
+filename = "test.json";
 
 %% Constants
 global constants;
@@ -34,8 +42,8 @@ databases.gwp = read_file('gwp_data.txt','gwp');
 data = load_project(filename);
 
 %% Concept
-data.concept = ahp(data.concept);
-print_concepts(data.concept)
+%data.concept = ahp(data.concept);
+%print_concepts(data.concept)
 
 % Add missing mission segment and vehicle component parameters
 data.mission = build_mission(data.mission);
@@ -52,8 +60,7 @@ data.vehicle = design_space_analysis(data.mission, data.vehicle, data.energy);
 
 %% Plot aircraft configuration
 data.vehicle = plot_aircraft(data.vehicle);
-
 %% Save new project file
-if ~isempty(varargin)
-    save_project(data, varargin{1})
-end
+%f ~isempty(varargin)
+%    save_project(data, varargin{1})
+%end

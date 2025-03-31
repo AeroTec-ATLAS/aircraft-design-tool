@@ -185,7 +185,7 @@ if is_type(source, 'energy.fuel')
 elseif is_type(source, 'energy.electric')
     battery_type_id = find_data(source{1}.source_type,'source');
     if is_type(aircraft, 'aircraft.rotary_wing') % Climb segment for rotary-wing aircraft (TEMP: assuming all rotors are of the same size)
-        induced_power = rotor{1}.induced_power_factor * (vehicle.mass * constants.g)^2 / 2 / segment.density(1) / rotor{1}.number / rotor_area(rotor{1}) / segment.velocity;
+        induced_power = rotor{1}.induced_power_factor * (vehicle.mass * constants.g)^2 / 2 / segment.density(1) / rotor{1}.number / rotor_area(rotor{1}) / segment.velocity;      
         profile_power = rotor_area(rotor{1}) * rotor{1}.number * segment.density(1) * rotor{1}.rotor_solidity * rotor{1}.base_drag_coefficient * (1 + 4.65 * advance_ratio(rotor{1}.rotational_speed, rotor{1}.radius, segment.velocity, blade_aoa(segment.angle, aircraft{1}.rotary_wing.lift_to_drag_ratio))^2) * (rotor{1}.rotational_speed * rotor{1}.radius)^3 / 8;
         climb_power = vehicle.mass * constants.g * segment.velocity * sind(segment.angle);
         parasitic_power = 0.5 * segment.density(1) * segment.velocity^3 * aircraft{1}.rotary_wing.equivalent_wetted_area;
@@ -218,7 +218,7 @@ global databases
 segment.weight_init = vehicle.mass;
 
 [network, network_ids] = find_network_components(vehicle, find_by_name(energy.networks, segment.energy_network));
-rotor = find_by_type(network, 'driver.prop');
+rotor = find_by_type(network, 'driver.  ');
 
 % Network efficiency
 e = network_efficiency(network, 'no_type'); % must include all components, including batteries

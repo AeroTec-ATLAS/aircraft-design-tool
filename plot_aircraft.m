@@ -23,12 +23,14 @@ a = gca;
 a.XLabel.String = 'x';
 a.YLabel.String = "y";
 
+%% variavel que acumula o cg de todas as partes.
 weighed_cg = 0;
 
 % Plot fuselage
 [fuselage, fuselage_id] = find_by_type(vehicle.components, 'fuselage');
 
 % Fuselage
+%% calcula as posições dos pontos relevantes dos vários bocados da fuselagem. pos(i, 1) calcula a posição ao longo do comprimento (x) e pos(i, 2) ao longo de y (é metade do diâmetro)
 for i = 1:length(fuselage{1,1}.diameters)
     pos(i,1) = fuselage{1,1}.length/(length(fuselage{1,1}.diameters)-1)*(i-1);
     pos(i,2) = -fuselage{1,1}.diameters(i)/2;
@@ -37,12 +39,12 @@ end
 sum_diameters = 0;
 sum_cg_pos = 0;
 for i = 1:length(fuselage{1,1}.diameters)
-    sum_diameters = sum_diameters + fuselage{1,1}.diameters(i);
-    sum_cg_pos = sum_cg_pos + pos(i,1) * fuselage{1,1}.diameters(i);
-end
+    sum_diameters = sum_diameters + fuselage{1,1}.diameters(i);  %% soma total dos diâmetros de todas as partes da fuselagem
+    sum_cg_pos = sum_cg_pos + pos(i,1) * fuselage{1,1}.diameters(i);  %%junto com o que vai a seguir calcula um CG que tem em conta a espessura da fuselagem.
+end   %fuselagem mais larga leva a um termo adicional maior.
 
-vehicle.components{fuselage_id}.position.cg = sum_cg_pos/sum_diameters;
-weighed_cg = weighed_cg + vehicle.components{fuselage_id}.position.cg * fuselage{1,1}.mass;
+vehicle.components{fuselage_id}.position.cg = sum_cg_pos/sum_diameters;   %%calculo do CG final da fuselagem tendo em conta a massa da fuselagem.
+weighed_cg = weighed_cg + vehicle.components{fuselage_id}.position.cg * fuselage{1,1}.mass;   %atualiza o CG total do veículo.
 
 for i = 1:length(fuselage{1,1}.diameters)
     pos(i+length(fuselage{1,1}.diameters),1) = fuselage{1,1}.length/(length(fuselage{1,1}.diameters)-1)*(length(fuselage{1,1}.diameters)-i);
@@ -50,19 +52,19 @@ for i = 1:length(fuselage{1,1}.diameters)
 end
 
 for i = 1:(length(pos)-1)
-    plot([pos(i,1),pos(i+1,1)],[pos(i,2),pos(i+1,2)], "Color", 'b', 'HandleVisibility','off');
+    plot([pos(i,1),pos(i+1,1)],[pos(i,2),pos(i+1,2)], "Color", 'b', 'HandleVisibility','off');   %% dá plot à fuselagem
 end
 
 plot([pos(length(pos),1),pos(1,1)],[pos(length(pos),2),pos(1,2)], "Color", 'b', 'HandleVisibility','off');
-scatter(vehicle.components{fuselage_id}.position.cg,0, 'b', 'DisplayName', 'C.G. Fuselage', 'Marker', '+')
+scatter(vehicle.components{fuselage_id}.position.cg,0, 'b', 'DisplayName', 'C.G. Fuselage', 'Marker', '+')    %% marca o ponto do cg da fuselagem
 
 % Booms
 [boom, boom_id] = find_by_type(vehicle.components, 'boom');
 
 if ~isempty(boom)
     for i = 1:size(vehicle.components{boom_id}.position.structure,1)
-        vehicle.components{boom_id}.position.cg(i,:) = [(vehicle.components{boom_id}.position.structure(i,1,1) + vehicle.components{boom_id}.position.structure(i,2,1))/2,(vehicle.components{boom_id}.position.structure(i,1,2) + vehicle.components{boom_id}.position.structure(i,2,2))/2];
-        weighed_cg = weighed_cg + vehicle.components{boom_id}.position.cg(i,1) * boom{1,1}.mass;
+        vehicle.components{boom_id}.position.cg(i,:) = [(vehicle.components{boom_id}.position.structure(i,1,1) + vehicle.components{boom_id}.position.structure(i,2,1))/2,(vehicle.components{boom_id}.position.structure(i,1,2) + vehicle.components{boom_id}.position.structure(i,2,2))/2];   %% soma as posições dos booms
+        weighed_cg = weighed_cg + vehicle.components{boom_id}.position.cg(i,1) * boom{1,1}.mass;   %calcula o CG dos booms baseado na sua massa e na soma das posições
         plot([vehicle.components{boom_id}.position.structure(i,1,1),vehicle.components{boom_id}.position.structure(i,2,1)],[vehicle.components{boom_id}.position.structure(i,1,2),vehicle.components{boom_id}.position.structure(i,2,2)], "Color", 'b', 'HandleVisibility','off');
         scatter(vehicle.components{boom_id}.position.cg(i,1),vehicle.components{boom_id}.position.cg(i,2), 'r', 'DisplayName', 'C.G. Boom', 'Marker', 'v')
     end
